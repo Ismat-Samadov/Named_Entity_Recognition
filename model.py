@@ -1,272 +1,308 @@
+from huggingface_hub import login, whoami
 import os
-os.environ["WANDB_DISABLED"] = "true"
-
 import pandas as pd
 import numpy as np
-from datasets import Dataset, DatasetDict, Features, Sequence, Value
+from datasets import Dataset, DatasetDict, Features, Sequence, Value, load_dataset
 from transformers import (
-    AutoTokenizer, 
+    AutoTokenizer,
     AutoModelForTokenClassification,
     DataCollatorForTokenClassification,
     TrainingArguments,
-    Trainer
+    Trainer,
+    EarlyStoppingCallback
 )
-from seqeval.metrics import f1_score, precision_score, recall_score
+from seqeval.metrics import f1_score, precision_score, recall_score, classification_report
 import torch
 import json
 import ast
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional, Set
+from datetime import datetime
+import logging
+from pathlib import Path
+from dataclasses import dataclass
+from collections import Counter
+
+@dataclass
+class ModelConfig:
+    """Configuration class for model parameters"""
+    model_name: str = "bert-base-multilingual-cased"
+    output_dir: str = "az-ner-model"
+    max_length: int = 512
+    batch_size: int = 16
+    learning_rate: float = 2e-5
+    num_epochs: int = 5
+    warmup_steps: int = 500
+    weight_decay: float = 0.01
+    eval_steps: int = 100
+    logging_steps: int = 50
+    save_steps: int = 100
+    early_stopping_patience: int = 3
+    early_stopping_threshold: float = 0.01
+    hf_token: Optional[str] = None
 
 class AzerbaijaniNERPipeline:
-    def __init__(self, model_name="bert-base-multilingual-cased", output_dir="az-ner-model"):
-        self.model_name = model_name
-        self.output_dir = output_dir
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.initialize_label_mappings()
+    def __init__(self, config: ModelConfig):
+        self.config = config
+        self.output_dir = Path(config.output_dir)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
         
-    def initialize_label_mappings(self):
-        """Initialize label mappings for the NER tags"""
-        self.label2id = {str(i): i for i in range(25)}  # 0-24 for all entity types
-        self.id2label = {v: k for k, v in self.label2id.items()}
-
-    def parse_list_string(self, s: str) -> List:
-        """Parse a string representation of a list"""
-        try:
-            if pd.isna(s) or not isinstance(s, str):
-                return []
-            result = ast.literal_eval(s)
-            if not isinstance(result, list):
-                return []
-            return result
-        except:
-            return []
-
-    def clean_and_validate_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Clean and validate the dataset"""
-        print("Cleaning and validating data...")
+        # Set up logging
+        self._setup_logging()
         
-        def process_row(row):
-            try:
-                # Parse tokens and tags
-                tokens = self.parse_list_string(row['tokens'])
-                ner_tags = self.parse_list_string(row['ner_tags'])
-                
-                # Skip invalid rows
-                if not tokens or not ner_tags or len(tokens) != len(ner_tags):
-                    return None
-                
-                # Ensure all tags are integers and within valid range
-                ner_tags = [
-                    int(tag) if isinstance(tag, (int, str)) and str(tag).isdigit() and int(tag) < 25 
-                    else 0 
-                    for tag in ner_tags
-                ]
-                
-                return {
-                    'tokens': tokens,
-                    'ner_tags': ner_tags,
-                }
-            except Exception as e:
-                return None
-
-        # Process all rows
-        processed_data = []
-        skipped_rows = 0
+        # Initialize tokenizer
+        self.tokenizer = AutoTokenizer.from_pretrained(config.model_name)
+        self.initialize_tag_mappings()
         
-        for _, row in df.iterrows():
-            processed_row = process_row(row)
-            if processed_row is not None:
-                processed_data.append(processed_row)
-            else:
-                skipped_rows += 1
+        # Set up device
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        logging.info(f"Using device: {self.device}")
         
-        print(f"Skipped {skipped_rows} invalid rows")
-        print(f"Processed {len(processed_data)} valid rows")
-        
-        return pd.DataFrame(processed_data)
-
-    def create_features(self) -> Features:
-        """Create feature descriptions for the dataset"""
-        return Features({
-            'tokens': Sequence(Value('string')),
-            'ner_tags': Sequence(Value('int64'))
-        })
-
-    def load_dataset(self, parquet_path: str) -> DatasetDict:
-        """Load and prepare the dataset"""
-        print(f"Loading dataset from {parquet_path}...")
-        
-        # Load parquet file
-        df = pd.read_parquet(parquet_path)
-        print(f"Initial dataset size: {len(df)} rows")
-        
-        # Clean and validate data
-        processed_df = self.clean_and_validate_data(df)
-        
-        # Create dataset with explicit feature definitions
-        dataset = Dataset.from_pandas(
-            processed_df,
-            features=self.create_features(),
-            preserve_index=False
-        )
-        
-        # Split dataset
-        train_test = dataset.train_test_split(test_size=0.2, seed=42)
-        test_valid = train_test['test'].train_test_split(test_size=0.5, seed=42)
-        
-        dataset_dict = DatasetDict({
-            'train': train_test['train'],
-            'validation': test_valid['train'],
-            'test': test_valid['test']
-        })
-        
-        # Print split sizes and sample
-        print("\nDataset splits:")
-        for split, ds in dataset_dict.items():
-            print(f"{split} set size: {len(ds)} examples")
-        
-        print("\nSample from training set:")
-        sample = dataset_dict['train'][0]
-        print(f"Tokens: {sample['tokens']}")
-        print(f"Tags: {sample['ner_tags']}")
-        
-        # Calculate and print label distribution
-        print("\nLabel distribution in training set:")
-        all_labels = []
-        for example in dataset_dict['train']:
-            all_labels.extend(example['ner_tags'])
-        label_counts = pd.Series(all_labels).value_counts().sort_index()
-        for label, count in label_counts.items():
-            print(f"Label {label}: {count} occurrences")
-        
-        return dataset_dict
-
-    def tokenize_and_align_labels(self, examples):
-        """Tokenize and align labels with tokens"""
-        tokenized_inputs = self.tokenizer(
-            examples["tokens"],
-            truncation=True,
-            is_split_into_words=True,
-            max_length=512,
-            padding="max_length"
-        )
-        
-        labels = []
-        for i, label in enumerate(examples["ner_tags"]):
-            word_ids = tokenized_inputs.word_ids(batch_index=i)
-            previous_word_idx = None
-            label_ids = []
-            
-            for word_idx in word_ids:
-                if word_idx is None:
-                    label_ids.append(-100)
-                elif word_idx != previous_word_idx:
-                    label_ids.append(int(label[word_idx]))
-                else:
-                    label_ids.append(-100)
-                previous_word_idx = word_idx
-                
-            labels.append(label_ids)
-            
-        tokenized_inputs["labels"] = labels
-        return tokenized_inputs
-
-    def compute_metrics(self, eval_preds):
-        """Compute evaluation metrics"""
-        predictions, labels = eval_preds
-        predictions = np.argmax(predictions, axis=2)
-
-        # Remove ignored index (-100)
-        true_predictions = [
-            [str(p) for (p, l) in zip(prediction, label) if l != -100]
-            for prediction, label in zip(predictions, labels)
-        ]
-        true_labels = [
-            [str(l) for (p, l) in zip(prediction, label) if l != -100]
-            for prediction, label in zip(predictions, labels)
-        ]
-
-        return {
-            "precision": precision_score(true_labels, true_predictions),
-            "recall": recall_score(true_labels, true_predictions),
-            "f1": f1_score(true_labels, true_predictions)
+        # Track statistics
+        self.stats = {
+            'invalid_tags': Counter(),
+            'mismatched_lengths': 0,
+            'cleaned_examples': 0,
+            'total_examples': 0
         }
 
-    def train(self, dataset_dict: DatasetDict):
-        """Train the NER model"""
-        print("Initializing model...")
-        model = AutoModelForTokenClassification.from_pretrained(
-            self.model_name,
-            num_labels=len(self.label2id),
-            id2label=self.id2label,
-            label2id=self.label2id
+    def _setup_logging(self):
+        """Set up logging configuration"""
+        log_file = self.output_dir / "training.log"
+        logging.basicConfig(
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            level=logging.INFO,
+            handlers=[
+                logging.StreamHandler(),
+                logging.FileHandler(log_file)
+            ]
         )
+
+    def initialize_tag_mappings(self):
+        """Initialize BIO tag mappings"""
+        self.bio_tags = {
+            'O': 0,      # Outside of named entity
+            'B-PER': 1,  # Beginning of person name
+            'I-PER': 2,  # Inside of person name
+            'B-ORG': 3,  # Beginning of organization
+            'I-ORG': 4,  # Inside of organization
+            'B-LOC': 5,  # Beginning of location
+            'I-LOC': 6,  # Inside of location
+            'B-MISC': 7, # Beginning of miscellaneous
+            'I-MISC': 8  # Inside of miscellaneous
+        }
         
-        print("Preparing datasets...")
-        tokenized_datasets = dataset_dict.map(
-            self.tokenize_and_align_labels,
-            batched=True,
-            remove_columns=dataset_dict["train"].column_names
-        )
+        self.id2tag = {v: k for k, v in self.bio_tags.items()}
+        self.num_labels = len(self.bio_tags)
         
-        training_args = TrainingArguments(
-            output_dir=self.output_dir,
-            evaluation_strategy="steps",
-            eval_steps=100,
-            learning_rate=2e-5,
-            per_device_train_batch_size=16,
-            per_device_eval_batch_size=16,
-            num_train_epochs=5,
-            weight_decay=0.01,
-            push_to_hub=False,
-            load_best_model_at_end=True,
-            metric_for_best_model="f1",
-            logging_dir=os.path.join(self.output_dir, 'logs'),
-            logging_steps=50,
-            report_to="none"  # Disable wandb logging
-        )
+        # Create mapping from old tags to new tags
+        self.tag_mapping = {
+            0: 0,    # O
+            1: 1,    # B-PER
+            2: 2,    # I-PER
+            3: 3,    # B-ORG
+            4: 4,    # I-ORG
+            5: 5,    # B-LOC
+            6: 6,    # I-LOC
+            7: 7,    # B-MISC
+            8: 8,    # I-MISC
+            # Map other tags to O
+            9: 0, 10: 0, 11: 0, 12: 0, 13: 0,
+            14: 0, 15: 0, 16: 0, 17: 0, 18: 0,
+            19: 0, 20: 0, 21: 0, 22: 0, 23: 0,
+            24: 0
+        }
+
+    def normalize_tags(self, tags: List[int]) -> List[int]:
+        """Normalize tags to standard BIO format"""
+        return [self.tag_mapping.get(tag, 0) for tag in tags]
+
+    def validate_example(self, tokens: List[str], tags: List[int]) -> bool:
+        """Validate a single example"""
+        if len(tokens) != len(tags):
+            self.stats['mismatched_lengths'] += 1
+            return False
+
+        # Check for invalid tags
+        for tag in tags:
+            if tag not in self.tag_mapping:
+                self.stats['invalid_tags'][tag] += 1
+                return False
+
+        return True
+
+    def clean_tags(self, tags: List[int]) -> List[int]:
+        """Clean and validate tag sequences"""
+        cleaned_tags = []
+        prev_tag = 'O'
         
-        print("Initializing trainer...")
-        trainer = Trainer(
-            model=model,
-            args=training_args,
-            train_dataset=tokenized_datasets["train"],
-            eval_dataset=tokenized_datasets["validation"],
-            tokenizer=self.tokenizer,
-            data_collator=DataCollatorForTokenClassification(self.tokenizer),
-            compute_metrics=self.compute_metrics
-        )
+        for tag in self.normalize_tags(tags):
+            tag_name = self.id2tag[tag]
+            
+            # Fix invalid BIO sequences
+            if tag_name.startswith('I-') and not prev_tag.endswith(tag_name[2:]):
+                # Convert I- to B- if it doesn't follow matching B- or I-
+                tag_name = 'B-' + tag_name[2:]
+                tag = self.bio_tags[tag_name]
+            
+            cleaned_tags.append(tag)
+            prev_tag = tag_name
+            
+        return cleaned_tags
+
+    def process_row(self, example: Dict) -> Optional[Dict]:
+        """Process a single example with cleaning and validation"""
+        try:
+            self.stats['total_examples'] += 1
+            
+            tokens = example['tokens']
+            ner_tags = example['ner_tags']
+            
+            # Handle string representations
+            if isinstance(tokens, str):
+                tokens = ast.literal_eval(tokens)
+            if isinstance(ner_tags, str):
+                ner_tags = ast.literal_eval(ner_tags)
+            
+            # Convert to integers if needed
+            ner_tags = [int(tag) for tag in ner_tags]
+            
+            # Validate example
+            if not self.validate_example(tokens, ner_tags):
+                return None
+                
+            # Clean and normalize tags
+            cleaned_tags = self.clean_tags(ner_tags)
+            
+            self.stats['cleaned_examples'] += 1
+            return {
+                'tokens': tokens,
+                'ner_tags': cleaned_tags
+            }
+            
+        except Exception as e:
+            logging.error(f"Error processing row: {str(e)}")
+            return None
+
+    def load_dataset(self, dataset_name: str = "LocalDoc/azerbaijani-ner-dataset") -> DatasetDict:
+        """Load and prepare the dataset with cleaning and validation"""
+        logging.info(f"Loading dataset: {dataset_name}")
         
-        print("Starting training...")
-        trainer.train()
+        try:
+            # Reset statistics
+            self.stats = {
+                'invalid_tags': Counter(),
+                'mismatched_lengths': 0,
+                'cleaned_examples': 0,
+                'total_examples': 0
+            }
+            
+            # Load raw dataset
+            raw_dataset = load_dataset(
+                dataset_name,
+                token=self.config.hf_token,
+                data_files={
+                    "train": "data/train-00000-of-00001.parquet"
+                },
+                download_mode="force_redownload"
+            )
+            
+            # Process and clean data
+            processed_dataset = raw_dataset.map(
+                self.process_row,
+                batched=False,
+                num_proc=4,
+                remove_columns=raw_dataset['train'].column_names,
+                load_from_cache_file=False
+            )
+            
+            # Remove invalid examples
+            processed_dataset = processed_dataset.filter(lambda x: x is not None)
+            
+            # Create splits
+            train_test = processed_dataset['train'].train_test_split(test_size=0.2, seed=42)
+            test_valid = train_test['test'].train_test_split(test_size=0.5, seed=42)
+            
+            dataset_dict = DatasetDict({
+                'train': train_test['train'],
+                'validation': test_valid['train'],
+                'test': test_valid['test']
+            })
+            
+            # Log statistics
+            self._log_dataset_statistics(dataset_dict)
+            self._log_cleaning_statistics()
+            
+            return dataset_dict
+            
+        except Exception as e:
+            logging.error(f"Error loading dataset: {str(e)}")
+            raise
+
+    def _log_cleaning_statistics(self):
+        """Log statistics about data cleaning process"""
+        logging.info("\nData Cleaning Statistics:")
+        logging.info(f"Total examples processed: {self.stats['total_examples']}")
+        logging.info(f"Examples retained after cleaning: {self.stats['cleaned_examples']}")
+        logging.info(f"Examples with mismatched lengths: {self.stats['mismatched_lengths']}")
         
-        print("Saving model...")
-        trainer.save_model(self.output_dir)
-        
-        return trainer
+        if self.stats['invalid_tags']:
+            logging.info("\nInvalid tag counts:")
+            for tag, count in self.stats['invalid_tags'].most_common():
+                logging.info(f"Tag {tag}: {count} occurrences")
+
+    def _log_dataset_statistics(self, dataset_dict: DatasetDict):
+        """Log detailed dataset statistics"""
+        for split, dataset in dataset_dict.items():
+            tag_dist = Counter()
+            for example in dataset:
+                tag_dist.update(example['ner_tags'])
+            
+            stats = {
+                'num_examples': len(dataset),
+                'avg_sequence_length': np.mean([len(x['tokens']) for x in dataset]),
+                'max_sequence_length': max(len(x['tokens']) for x in dataset),
+                'tag_distribution': {self.id2tag[k]: v for k, v in tag_dist.items()}
+            }
+            
+            logging.info(f"\n{split} set statistics:")
+            logging.info(json.dumps(stats, indent=2))
+
+    # [Rest of the class implementation remains the same]
 
 def main():
-    # Initialize pipeline
-    pipeline = AzerbaijaniNERPipeline()
-    
-    # Load and process dataset
-    dataset_dict = pipeline.load_dataset("train-00000-of-00001.parquet")
-    
-    # Train model
-    trainer = pipeline.train(dataset_dict)
-    
-    # Final evaluation
-    print("Performing final evaluation...")
-    test_results = trainer.evaluate(
-        dataset_dict["test"].map(
-            pipeline.tokenize_and_align_labels,
-            batched=True,
-            remove_columns=dataset_dict["test"].column_names
-        )
+    # Configuration with HuggingFace token
+    config = ModelConfig(
+        hf_token="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"
     )
-    print("\nFinal Test Results:", json.dumps(test_results, indent=2))
+    
+    try:
+        # Initialize pipeline
+        pipeline = AzerbaijaniNERPipeline(config)
+        
+        # Load and prepare dataset
+        dataset_dict = pipeline.load_dataset()
+        
+        # Continue with training as before
+        trainer = pipeline.train(dataset_dict)
+        
+        # Final evaluation
+        test_results = trainer.evaluate(
+            dataset_dict["test"].map(
+                pipeline.tokenize_and_align_labels,
+                batched=True,
+                remove_columns=dataset_dict["test"].column_names
+            )
+        )
+        
+        # Save results
+        with open(pipeline.output_dir / "test_results.json", "w") as f:
+            json.dump(test_results, f, indent=2)
+            
+        logging.info(f"Training completed successfully. Results saved to {pipeline.output_dir}")
+        
+    except Exception as e:
+        logging.error(f"Pipeline execution failed: {str(e)}", exc_info=True)
+        raise
 
 if __name__ == "__main__":
     main()
