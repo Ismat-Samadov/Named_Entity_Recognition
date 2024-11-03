@@ -1,4 +1,34 @@
-import ast
+# Constants for label mapping
+LABEL_MAP = {
+    "O": 0,
+    "PERSON": 1,
+    "LOCATION": 2,
+    "ORGANISATION": 3,
+    "DATE": 4,
+    "TIME": 5,
+    "MONEY": 6,
+    "PERCENTAGE": 7,
+    "FACILITY": 8,
+    "PRODUCT": 9,
+    "EVENT": 10,
+    "ART": 11,
+    "LAW": 12,
+    "LANGUAGE": 13,
+    "GPE": 14,
+    "NORP": 15,
+    "ORDINAL": 16,
+    "CARDINAL": 17,
+    "DISEASE": 18,
+    "CONTACT": 19,
+    "ADAGE": 20,
+    "QUANTITY": 21,
+    "MISCELLANEOUS": 22,
+    "POSITION": 23,
+    "PROJECT": 24
+}
+
+# Inverse mapping for predictions
+ID2LABEL = {v: k for k, v in LABEL_MAP.items()}
 
 class NERDataProcessor:
     """Handles data preprocessing for NER tasks"""
@@ -11,7 +41,7 @@ class NERDataProcessor:
         """Safely evaluate string representation of list"""
         try:
             if isinstance(string_data, str):
-                # Remove any unwanted whitespace and ensure proper quotes
+                # Clean the string - handle potential JSON-like formatting
                 cleaned_str = string_data.strip().replace("'", '"')
                 return ast.literal_eval(cleaned_str)
             return string_data
@@ -26,9 +56,25 @@ class NERDataProcessor:
             tokens = self.safe_eval(example["tokens"])
             ner_tags = self.safe_eval(example["ner_tags"])
             
-            # Convert tags to integers if they're strings
+            # Convert tags to integers
             if ner_tags and isinstance(ner_tags[0], str):
-                ner_tags = [int(tag) for tag in ner_tags]
+                # Handle potential BIO format
+                processed_tags = []
+                for tag in ner_tags:
+                    if tag == "O":
+                        processed_tags.append(0)
+                    else:
+                        # Handle BIO format (B-PERSON, I-PERSON, etc.)
+                        parts = tag.split("-")
+                        if len(parts) == 2:
+                            bio_prefix, entity_type = parts
+                            if entity_type in LABEL_MAP:
+                                processed_tags.append(LABEL_MAP[entity_type])
+                            else:
+                                processed_tags.append(0)  # Default to O if unknown
+                        else:
+                            processed_tags.append(0)  # Default to O if malformed
+                ner_tags = processed_tags
             
             # Ensure tokens is a list of strings
             if not tokens or not isinstance(tokens, list):
@@ -49,61 +95,36 @@ class NERDataProcessor:
             print(f"Tokens: {example.get('tokens')}")
             print(f"NER tags: {example.get('ner_tags')}")
             return {"text": "", "tokens": [], "ner_tags": []}
+
+def compute_metrics(pred_obj: Any) -> Dict[str, float]:
+    """Compute evaluation metrics"""
+    predictions, labels = pred_obj
+    predictions = [p for batch in predictions for p in batch]
+    labels = [l for batch in labels for l in batch]
     
-    def tokenize_and_align_labels(self, example: Dict[str, Any]) -> Dict[str, Any]:
-        """Tokenize and align labels with tokens"""
-        # Skip empty examples
-        if not example["text"]:
-            return {
-                "input_ids": [0] * self.max_length,
-                "attention_mask": [0] * self.max_length,
-                "labels": [-100] * self.max_length
-            }
-        
-        tokenized_inputs = self.tokenizer(
-            example["text"],
-            truncation=True,
-            padding="max_length",
-            max_length=self.max_length,
-            return_offsets_mapping=True
-        )
-        
-        labels = []
-        offset_mapping = tokenized_inputs.pop("offset_mapping")
-        
-        current_token_idx = 0
-        current_token = example["tokens"][0] if example["tokens"] else ""
-        current_token_start = 0
-        
-        for start, end in offset_mapping:
-            # Special tokens
-            if start == end == 0:
-                labels.append(-100)
-                continue
-            
-            # Regular tokens
-            token_text = example["text"][start:end]
-            
-            if current_token_idx < len(example["ner_tags"]):
-                if token_text.strip():
-                    labels.append(example["ner_tags"][current_token_idx])
-                    if end - start >= len(current_token):
-                        current_token_idx += 1
-                        if current_token_idx < len(example["tokens"]):
-                            current_token = example["tokens"][current_token_idx]
-                else:
-                    labels.append(-100)
-            else:
-                labels.append(-100)
-        
-        # Ensure correct length
-        if len(labels) < self.max_length:
-            labels.extend([-100] * (self.max_length - len(labels)))
-        elif len(labels) > self.max_length:
-            labels = labels[:self.max_length]
-            
-        tokenized_inputs["labels"] = labels
-        return tokenized_inputs
+    # Convert to entity labels
+    true_labels = [[ID2LABEL[l] for l in label if l != -100] for label in labels]
+    true_predictions = [[ID2LABEL[p] for p in pred] for pred in predictions]
+    
+    # Calculate metrics
+    results = {
+        "precision": precision_score(true_labels, true_predictions),
+        "recall": recall_score(true_labels, true_predictions),
+        "f1": f1_score(true_labels, true_predictions),
+        "token_accuracy": accuracy_score(
+            [l for sublist in true_labels for l in sublist],
+            [p for sublist in true_predictions for p in sublist]
+        ),
+        "entity_accuracy": seqeval_accuracy(true_labels, true_predictions),
+        "macro_f1": f1_score(true_labels, true_predictions, average="macro"),
+        "micro_f1": f1_score(true_labels, true_predictions, average="micro")
+    }
+    
+    # Print detailed classification report
+    print("\nDetailed Classification Report:")
+    print(classification_report(true_labels, true_predictions))
+    
+    return results
 
 def main():
     # Initialize configurations
@@ -112,45 +133,59 @@ def main():
     # Load dataset
     dataset = load_dataset("LocalDoc/azerbaijani-ner-dataset")
     
+    # Print dataset info
+    print("\nDataset Info:")
+    print(f"Number of examples: {len(dataset['train'])}")
+    print("\nSample raw example:")
+    print(dataset["train"][0])
+    
     # Initialize tokenizer and data processor
     tokenizer = AutoTokenizer.from_pretrained(model_config.base_model)
     processor = NERDataProcessor(tokenizer, model_config.max_length)
     
-    # Print example data for debugging
-    print("Sample raw example:")
-    print(dataset["train"][0])
-    
     # Preprocess dataset
     preprocessed_dataset = dataset.map(
         processor.preprocess_example,
-        remove_columns=dataset["train"].column_names
+        remove_columns=dataset["train"].column_names,
+        desc="Preprocessing dataset"
     )
     
-    # Print preprocessed example for debugging
+    # Print preprocessed example
     print("\nSample preprocessed example:")
     print(preprocessed_dataset["train"][0])
     
     # Tokenize and align labels
     tokenized_datasets = preprocessed_dataset.map(
         processor.tokenize_and_align_labels,
-        remove_columns=preprocessed_dataset["train"].column_names
+        remove_columns=preprocessed_dataset["train"].column_names,
+        desc="Tokenizing dataset"
     )
-    
-    # Print tokenized example for debugging
-    print("\nSample tokenized example:")
-    print(tokenized_datasets["train"][0])
-    
-    # Split dataset
-    train_test_split = tokenized_datasets["train"].train_test_split(test_size=0.1)
     
     # Initialize model
     model = BiLSTMCRFNER(
-        num_labels=len(LABEL_LIST),
+        num_labels=len(LABEL_MAP),
         config=model_config
     )
     
+    # Move model to GPU if available
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
+    
+    # Create training arguments
+    training_args = create_training_args(
+        output_dir="./results",
+        learning_rate=2e-5,
+        batch_size=16,
+        num_epochs=5
+    )
+    
+    # Split dataset
+    train_test_split = tokenized_datasets["train"].train_test_split(
+        test_size=0.1,
+        seed=42
+    )
+    
     # Train model
-    training_args = create_training_args("./results")
     trainer = train_model(
         model,
         train_test_split["train"],
@@ -163,6 +198,9 @@ def main():
     eval_results = trainer.evaluate()
     print("\nEvaluation Results:", eval_results)
     
+    # Save model and tokenizer
     save_directory = "./XLM-RoBERTa-BiLSTM-CRF"
-    model.save_pretrained(save_directory)
-    tokenizer.save_pretrained(save_directory)
+    save_model(model, tokenizer, save_directory)
+
+if __name__ == "__main__":
+    main()
