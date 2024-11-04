@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main    # Update this if your primary branch is named differently
+
 jobs:
   deploy:
     name: Deploy app
@@ -13,6 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only --app named-entity-recognition  # "--app your-app-name" specifies the app if multiple apps exist
+      
+      # Step to scale memory to 2048 MB
+      - run: flyctl scale memory 2048 --app named-entity-recognition  # Sets memory to 2 GB
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}  # Fly.io API token for authentication
+      
+      # Deploy the application
+      - run: flyctl deploy --remote-only --app named-entity-recognition  # Specifies the app name
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}  # Ensure this token is set in your GitHub repo's secrets
