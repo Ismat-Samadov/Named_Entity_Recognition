@@ -1,6 +1,3 @@
-Here's the updated `README.md` with the demo link included:
-
-
 # Named_Entity_Recognition
 
 ### Custom Named Entity Recognition (NER) Model for Azerbaijani Language
