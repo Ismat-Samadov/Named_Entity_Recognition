@@ -138,4 +138,4 @@ Access your deployed app at the Fly.io-provided URL (e.g., `https://your-app-nam
 
 Access the web interface through the Fly.io URL or `http://localhost:8080` (if running locally) to test the NER model and view recognized entities.
 
-This application leverages both mBERT and XLM-RoBERTa models fine-tuned on Azerbaijani language data for high-accuracy named entity recognition.
+This application leverages XLM-RoBERTa models fine-tuned on Azerbaijani language data for high-accuracy named entity recognition.
