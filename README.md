@@ -37,6 +37,8 @@ You can try out the deployed model here: [Named Entity Recognition Demo](https:/
 
 Both models were fine-tuned on a premium A100 GPU in Google Colab for optimized training performance.
 
+**Note**: Due to its superior performance, the XLM-RoBERTa model was selected for deployment.
+
 ## Model Performance Metrics
 
 ### mBERT Model
@@ -67,17 +69,23 @@ Both models were fine-tuned on a premium A100 GPU in Google Colab for optimized 
    cd named-entity-recognition
    ```
 
-2. **Install dependencies**:
+2. **Create and activate a virtual environment**:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+   ```
+
+3. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Run the FastAPI app**:
+4. **Run the FastAPI app**:
    ```bash
    uvicorn main:app --host 0.0.0.0 --port 8080
    ```
 
-4. **Deploy on Fly.io**:
+5. **Deploy on Fly.io**:
    Use the following steps to deploy the app on Fly.io.
 
 ## Fly.io Deployment
