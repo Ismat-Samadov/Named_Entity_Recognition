@@ -1,3 +1,7 @@
+Here’s the updated README with the additional **XLM-RoBERTa Large Model** metrics section added.
+
+---
+
 # Named_Entity_Recognition
 
 ### Custom Named Entity Recognition (NER) Model for Azerbaijani Language
@@ -36,10 +40,11 @@ You can try out the deployed model here: [Named Entity Recognition Demo](https:/
 - **Dataset**: [Azerbaijani NER Dataset](https://huggingface.co/datasets/LocalDoc/azerbaijani-ner-dataset)
 - **mBERT Model**: [mBERT Azerbaijani NER](https://huggingface.co/IsmatS/mbert-az-ner)
 - **XLM-RoBERTa Model**: [XLM-RoBERTa Azerbaijani NER](https://huggingface.co/IsmatS/xlm-roberta-az-ner)
+- **XLM-RoBERTa Large Model**: [XLM-RoBERTa Large Azerbaijani NER](https://huggingface.co/IsmatS/xlm-roberta-large-az-ner)
 
 Both models were fine-tuned on a premium A100 GPU in Google Colab for optimized training performance.
 
-**Note**: Due to its superior performance, the XLM-RoBERTa model was selected for deployment.
+**Note**: Due to its superior performance, the XLM-RoBERTa Large model was selected for deployment.
 
 ## Model Performance Metrics
 
@@ -51,7 +56,7 @@ Both models were fine-tuned on a premium A100 GPU in Google Colab for optimized 
 | 2     | 0.248600      | 0.252083       | 0.721036  | 0.637979 | 0.676970 | 0.921439 |
 | 3     | 0.206800      | 0.253372       | 0.704872  | 0.650684 | 0.676695 | 0.920898 |
 
-### XLM-RoBERTa Model
+### XLM-RoBERTa Base Model
 
 | Epoch | Training Loss | Validation Loss | Precision | Recall   | F1       |
 |-------|---------------|----------------|-----------|----------|----------|
@@ -62,6 +67,41 @@ Both models were fine-tuned on a premium A100 GPU in Google Colab for optimized 
 | 5     | 0.223800      | 0.252187       | 0.764390  | 0.740460 | 0.752235 |
 | 6     | 0.218600      | 0.249887       | 0.756352  | 0.741646 | 0.748927 |
 | 7     | 0.209700      | 0.250748       | 0.760696  | 0.739438 | 0.749916 |
+
+### XLM-RoBERTa Large Model
+
+| Epoch | Training Loss | Validation Loss | Precision | Recall   | F1       |
+|-------|---------------|----------------|-----------|----------|----------|
+| 1     | 0.407500      | 0.253823       | 0.768923  | 0.721350 | 0.744377 |
+| 2     | 0.255600      | 0.249694       | 0.783549  | 0.724464 | 0.752849 |
+| 3     | 0.214400      | 0.248773       | 0.750857  | 0.748900 | 0.749877 |
+| 4     | 0.193400      | 0.257051       | 0.768623  | 0.740371 | 0.754232 |
+| 5     | 0.169800      | 0.275679       | 0.745789  | 0.753740 | 0.749743 |
+| 6     | 0.152600      | 0.288074       | 0.783131  | 0.728423 | 0.754787 |
+| 7     | 0.144300      | 0.303378       | 0.758504  | 0.738069 | 0.748147 |
+| 8     | 0.126800      | 0.311300       | 0.745589  | 0.750863 | 0.748217 |
+| 9     | 0.119400      | 0.331631       | 0.739316  | 0.749475 | 0.744361 |
+| 10    | 0.109400      | 0.344823       | 0.754268  | 0.737189 | 0.745631 |
+| 11    | 0.102900      | 0.354887       | 0.751948  | 0.741285 | 0.746578 |
+
+### Detailed Metrics for XLM-RoBERTa Large Model
+
+| Entity       | Precision | Recall | F1-score | Support |
+|--------------|-----------|--------|----------|---------|
+| ART          | 0.41      | 0.19   | 0.26     | 1828    |
+| DATE         | 0.53      | 0.49   | 0.51     | 834     |
+| EVENT        | 0.67      | 0.51   | 0.58     | 63      |
+| FACILITY     | 0.74      | 0.68   | 0.71     | 1134    |
+| LAW          | 0.62      | 0.58   | 0.60     | 1066    |
+| LOCATION     | 0.81      | 0.79   | 0.80     | 8795    |
+| MONEY        | 0.59      | 0.56   | 0.58     | 555     |
+| ORGANISATION | 0.70      | 0.69   | 0.70     | 554     |
+| PERCENTAGE   | 0.80      | 0.82   | 0.81     | 3502    |
+| PERSON       | 0.90      | 0.82   | 0.86     | 7007    |
+| PRODUCT      | 0.83      | 0.84   | 0.84     | 2624    |
+| TIME         | 0.60      | 0.53   | 0.57     | 1584    |
+
+---
 
 ## Setup and Usage
 
@@ -74,7 +114,9 @@ Both models were fine-tuned on a premium A100 GPU in Google Colab for optimized 
 2. **Create and activate a virtual environment**:
    ```bash
    python3 -m venv .venv
-   source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+   source .venv/bin/activate
+
+  # On Windows use: .venv\Scripts\activate
    ```
 
 3. **Install dependencies**:
@@ -140,4 +182,4 @@ Access your deployed app at the Fly.io-provided URL (e.g., `https://your-app-nam
 
 Access the web interface through the Fly.io URL or `http://localhost:8080` (if running locally) to test the NER model and view recognized entities.
 
-This application leverages the XLM-RoBERTa model fine-tuned on Azerbaijani language data for high-accuracy named entity recognition.
+This application leverages the XLM-RoBERTa Large model fine-tuned on Azerbaijani language data for high-accuracy named entity recognition.
