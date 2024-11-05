@@ -3,7 +3,7 @@
 This project fine-tunes a custom NER model for Azerbaijani text using the multilingual XLM-RoBERTa model. This notebook and its supporting files enable extracting named entities like **persons**, **locations**, **organizations**, and **dates** from Azerbaijani text.
 
 ### Notebook Source
-This notebook was created in Google Colab and can be accessed [here](https://colab.research.google.com/drive/1EYYZa7dya2RjTZXHSJ4pzIOgzqR8lmSk).
+This notebook was created in Google Colab and can be accessed [here](https://github.com/Ismat-Samadov/Named_Entity_Recognition/blob/main/models/XLM-RoBERTa.ipynb).
 
 ## Setup Instructions
 
