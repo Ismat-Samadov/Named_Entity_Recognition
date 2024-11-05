@@ -10,8 +10,8 @@ hf_token = os.getenv("HUGGINGFACE_TOKEN")
 login(token=hf_token)
 
 # Define your repository ID
-repo_id = "IsmatS/mbert-az-ner"
+repo_id = "IsmatS/xlm_roberta_large_az_ner"
 
 # Initialize HfApi and upload the model folder
 api = HfApi()
-api.upload_folder(folder_path="./mbert-azerbaijani-ner", path_in_repo="", repo_id=repo_id)
+api.upload_folder(folder_path="./xlm-roberta-large", path_in_repo="", repo_id=repo_id)
