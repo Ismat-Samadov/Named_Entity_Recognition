@@ -115,7 +115,7 @@ All three models were fine-tuned on a premium A100 GPU in Google Colab for optim
   # On Windows use: .venv\Scripts\activate
    ```
 
-3. **Install dependencies**:
+3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
