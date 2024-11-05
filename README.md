@@ -36,7 +36,7 @@ You can try out the deployed model here: [Named Entity Recognition Demo](https:/
 - **Dataset**: [Azerbaijani NER Dataset](https://huggingface.co/datasets/LocalDoc/azerbaijani-ner-dataset)
 - **mBERT Model**: [mBERT Azerbaijani NER](https://huggingface.co/IsmatS/mbert-az-ner)
 - **XLM-RoBERTa Model**: [XLM-RoBERTa Azerbaijani NER](https://huggingface.co/IsmatS/xlm-roberta-az-ner)
-- **XLM-RoBERTa Large Model**: [XLM-RoBERTa Large Azerbaijani NER](https://huggingface.co/IsmatS/xlm-roberta-large-az-ner)
+- **XLM-RoBERTa Large Model**: [XLM-RoBERTa Large Azerbaijani NER](https://huggingface.co/IsmatS/xlm_roberta_large_az_ner)
 
 Both models were fine-tuned on a premium A100 GPU in Google Colab for optimized training performance.
 
