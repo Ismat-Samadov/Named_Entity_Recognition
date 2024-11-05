@@ -1,7 +1,3 @@
-Here’s the updated README with the additional **XLM-RoBERTa Large Model** metrics section added.
-
----
-
 # Named_Entity_Recognition
 
 ### Custom Named Entity Recognition (NER) Model for Azerbaijani Language
