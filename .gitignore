@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 ./__pycache__
 .DS_Store
+azeri-turkish-bert-ner
 # C extensions
 *.so
 .vscode

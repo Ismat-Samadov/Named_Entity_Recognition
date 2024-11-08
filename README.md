@@ -37,8 +37,8 @@ You can try out the deployed model here: [Named Entity Recognition Demo](https:/
 - **mBERT Model**: [mBERT Azerbaijani NER](https://huggingface.co/IsmatS/mbert-az-ner)
 - **XLM-RoBERTa Model**: [XLM-RoBERTa Azerbaijani NER](https://huggingface.co/IsmatS/xlm-roberta-az-ner)
 - **XLM-RoBERTa Large Model**: [XLM-RoBERTa Large Azerbaijani NER](https://huggingface.co/IsmatS/xlm_roberta_large_az_ner)
-
-All three models were fine-tuned on a premium A100 GPU in Google Colab for optimized training performance.
+- **Azeri-Turkish-BERT-NER**: [Azerbaijani-Turkish BERT Base NER](https://huggingface.co/IsmatS/azeri-turkish-bert-ner)
+All four models were fine-tuned on a premium A100 GPU in Google Colab for optimized training performance.
 
 **Note**: The XLM-RoBERTa base model was selected for deployment.
 
@@ -80,24 +80,21 @@ All three models were fine-tuned on a premium A100 GPU in Google Colab for optim
 | 10    | 0.109400      | 0.344823       | 0.754268  | 0.737189 | 0.745631 |
 | 11    | 0.102900      | 0.354887       | 0.751948  | 0.741285 | 0.746578 |
 
-### Detailed Metrics for XLM-RoBERTa Large Model
 
-| Entity       | Precision | Recall | F1-score | Support |
-|--------------|-----------|--------|----------|---------|
-| ART          | 0.41      | 0.19   | 0.26     | 1828    |
-| DATE         | 0.53      | 0.49   | 0.51     | 834     |
-| EVENT        | 0.67      | 0.51   | 0.58     | 63      |
-| FACILITY     | 0.74      | 0.68   | 0.71     | 1134    |
-| LAW          | 0.62      | 0.58   | 0.60     | 1066    |
-| LOCATION     | 0.81      | 0.79   | 0.80     | 8795    |
-| MONEY        | 0.59      | 0.56   | 0.58     | 555     |
-| ORGANISATION | 0.70      | 0.69   | 0.70     | 554     |
-| PERCENTAGE   | 0.80      | 0.82   | 0.81     | 3502    |
-| PERSON       | 0.90      | 0.82   | 0.86     | 7007    |
-| PRODUCT      | 0.83      | 0.84   | 0.84     | 2624    |
-| TIME         | 0.60      | 0.53   | 0.57     | 1584    |
+### Azeri-Turkish-BERT-NER
 
----
+| Epoch | Training Loss | Validation Loss | Precision | Recall | F1    |
+|-------|---------------|-----------------|-----------|--------|-------|
+| 1     | 0.433100      | 0.306711        | 0.739000  | 0.693282 | 0.715412 |
+| 2     | 0.292700      | 0.275796        | 0.781565  | 0.688937 | 0.732334 |
+| 3     | 0.250600      | 0.275115        | 0.758261  | 0.709425 | 0.733031 |
+| 4     | 0.233700      | 0.273087        | 0.756184  | 0.716277 | 0.735689 |
+| 5     | 0.214800      | 0.278477        | 0.756051  | 0.710996 | 0.732832 |
+| 6     | 0.199200      | 0.286102        | 0.755068  | 0.717012 | 0.735548 |
+| 7     | 0.192800      | 0.297157        | 0.742326  | 0.725802 | 0.733971 |
+| 8     | 0.178900      | 0.304510        | 0.743206  | 0.723930 | 0.733442 |
+| 9     | 0.171700      | 0.313845        | 0.743145  | 0.725535 | 0.734234 |
+
 
 ## Setup and Usage
 
