@@ -17,10 +17,14 @@ Try the live demo: [Named Entity Recognition Demo](https://named-entity-recognit
 ├── fly.toml                 # Fly.io deployment configuration
 ├── main.py                  # FastAPI application entry point
 ├── models/                  # Model-related files
-│   ├── XLM-RoBERTa.ipynb    # XLM-RoBERTa training notebook
-│   ├── mBERT.ipynb          # mBERT training notebook
-│   ├── push_to_HF.py        # Hugging Face upload script
-│   └── train.parquet        # Training data
+│   ├── NER_from_scratch.ipynb    # Custom NER implementation notebook
+│   ├── README.md                 # Models documentation
+│   ├── XLM-RoBERTa.ipynb        # XLM-RoBERTa training notebook
+│   ├── azeri-turkish-bert-ner.ipynb  # Azeri-Turkish BERT training
+│   ├── mBERT.ipynb              # mBERT training notebook
+│   ├── push_to_HF.py            # Hugging Face upload script
+│   ├── train-00000-of-00001.parquet  # Training data
+│   └── xlm_roberta_large.ipynb  # XLM-RoBERTa Large training
 ├── requirements.txt         # Python dependencies
 ├── static/                  # Frontend assets
 │   ├── app.js               # Frontend logic
