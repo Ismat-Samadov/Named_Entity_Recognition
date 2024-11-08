@@ -38,6 +38,8 @@ You can try out the deployed model here: [Named Entity Recognition Demo](https:/
 - **XLM-RoBERTa Model**: [XLM-RoBERTa Azerbaijani NER](https://huggingface.co/IsmatS/xlm-roberta-az-ner)
 - **XLM-RoBERTa Large Model**: [XLM-RoBERTa Large Azerbaijani NER](https://huggingface.co/IsmatS/xlm_roberta_large_az_ner)
 - **Azeri-Turkish-BERT-NER**: [Azerbaijani-Turkish BERT Base NER](https://huggingface.co/IsmatS/azeri-turkish-bert-ner)
+
+
 All four models were fine-tuned on a premium A100 GPU in Google Colab for optimized training performance.
 
 **Note**: The XLM-RoBERTa base model was selected for deployment.
