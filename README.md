@@ -102,7 +102,7 @@ All four models were fine-tuned on a premium A100 GPU in Google Colab for optimi
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-repo/named-entity-recognition.git
+   git clone https://github.com/Ismat-Samadov/Named_Entity_Recognition.git
    cd named-entity-recognition
    ```
 
