@@ -10,7 +10,7 @@ hf_token = os.getenv("HUGGINGFACE_TOKEN")
 login(token=hf_token)
 
 # Define your repository ID
-repo_id = "IsmatS/xlm_roberta_large_az_ner"
+repo_id = "IsmatS/azeri-turkish-bert-ner.py"
 
 # Initialize HfApi and upload the model folder
 api = HfApi()
