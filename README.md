@@ -1,180 +1,157 @@
-# Named_Entity_Recognition
+# Named Entity Recognition for Azerbaijani Language
 
-### Custom Named Entity Recognition (NER) Model for Azerbaijani Language
+A custom Named Entity Recognition (NER) model specifically designed for the Azerbaijani language. This project includes a FastAPI application for model deployment and a user-friendly frontend interface for testing and visualizing NER results.
 
-This project provides a custom Named Entity Recognition (NER) model tailored for the Azerbaijani language. It includes a FastAPI application for deploying the model, as well as a frontend interface to test and view the NER results.
+## Demo
 
-### Demo
+Try the live demo: [Named Entity Recognition Demo](https://named-entity-recognition.fly.dev/)
 
-You can try out the deployed model here: [Named Entity Recognition Demo](https://named-entity-recognition.fly.dev/)
+**Note:** The server runs on a free tier and may take 1-2 minutes to initialize if inactive. Please be patient during startup.
 
-**Note:** The server is hosted on a free tier, so it may take 1-2 minutes to wake up if it’s inactive when you access it. Please be patient as the server starts up.
+## Project Structure
 
-## File Structure
-
-```plaintext
+```
 .
-├── Dockerfile                # Defines instructions for building the Docker image
-├── README.md                 # Project overview, setup, and usage instructions
-├── fly.toml                  # Configuration file for Fly.io deployment
-├── main.py                   # Main FastAPI app file handling API endpoints and model loading
-├── models                    # Contains model-related notebooks, scripts, and data
-│   ├── XLM-RoBERTa.ipynb     # Notebook for XLM-RoBERTa model training/testing
-│   ├── mBERT.ipynb           # Notebook for mBERT model training/testing
-│   ├── push_to_HF.py         # Script to push model to Hugging Face hub
-│   └── train-00000-of-00001.parquet  # Parquet file with model training/evaluation data
-├── requirements.txt          # Lists all Python dependencies for the project
-├── static                    # Contains frontend assets (JavaScript, CSS)
-│   ├── app.js                # JavaScript for handling frontend functionality
-│   └── style.css             # CSS for styling the frontend interface
-└── templates                 # HTML templates for rendering the frontend interface
-    └── index.html            # Main HTML file for the user interface
+├── Dockerfile                # Docker image configuration
+├── README.md                # Project documentation
+├── fly.toml                 # Fly.io deployment configuration
+├── main.py                  # FastAPI application entry point
+├── models/                  # Model-related files
+│   ├── XLM-RoBERTa.ipynb    # XLM-RoBERTa training notebook
+│   ├── mBERT.ipynb          # mBERT training notebook
+│   ├── push_to_HF.py        # Hugging Face upload script
+│   └── train.parquet        # Training data
+├── requirements.txt         # Python dependencies
+├── static/                  # Frontend assets
+│   ├── app.js               # Frontend logic
+│   └── style.css            # UI styling
+└── templates/               # HTML templates
+    └── index.html           # Main UI template
 ```
 
-## Data and Model Links
+## Models & Dataset
 
-- **Dataset**: [Azerbaijani NER Dataset](https://huggingface.co/datasets/LocalDoc/azerbaijani-ner-dataset)
-- **mBERT Model**: [mBERT Azerbaijani NER](https://huggingface.co/IsmatS/mbert-az-ner)
-- **XLM-RoBERTa Model**: [XLM-RoBERTa Azerbaijani NER](https://huggingface.co/IsmatS/xlm-roberta-az-ner)
-- **XLM-RoBERTa Large Model**: [XLM-RoBERTa Large Azerbaijani NER](https://huggingface.co/IsmatS/xlm_roberta_large_az_ner)
-- **Azeri-Turkish-BERT-NER**: [Azerbaijani-Turkish BERT Base NER](https://huggingface.co/IsmatS/azeri-turkish-bert-ner)
+### Available Models
 
+- [mBERT Azerbaijani NER](https://huggingface.co/IsmatS/mbert-az-ner)
+- [XLM-RoBERTa Azerbaijani NER](https://huggingface.co/IsmatS/xlm-roberta-az-ner)
+- [XLM-RoBERTa Large Azerbaijani NER](https://huggingface.co/IsmatS/xlm_roberta_large_az_ner)
+- [Azerbaijani-Turkish BERT Base NER](https://huggingface.co/IsmatS/azeri-turkish-bert-ner)
 
-All four models were fine-tuned on a premium A100 GPU in Google Colab for optimized training performance.
+### Dataset
+- [Azerbaijani NER Dataset](https://huggingface.co/datasets/LocalDoc/azerbaijani-ner-dataset)
 
-**Note**: The XLM-RoBERTa base model was selected for deployment.
+**Note:** All models were fine-tuned on an A100 GPU using Google Colab Pro+. The XLM-RoBERTa base model is currently deployed in production.
 
-## Model Performance Metrics
+## Model Performance
 
-### mBERT Model
+### mBERT Performance
 
-| Epoch | Training Loss | Validation Loss | Precision | Recall   | F1       | Accuracy |
-|-------|---------------|----------------|-----------|----------|----------|----------|
-| 1     | 0.295200      | 0.265711       | 0.715424  | 0.622853 | 0.665937 | 0.919136 |
-| 2     | 0.248600      | 0.252083       | 0.721036  | 0.637979 | 0.676970 | 0.921439 |
-| 3     | 0.206800      | 0.253372       | 0.704872  | 0.650684 | 0.676695 | 0.920898 |
+| Epoch | Training Loss | Validation Loss | Precision | Recall | F1 | Accuracy |
+|-------|---------------|-----------------|-----------|---------|-------|-----------|
+| 1 | 0.2952 | 0.2657 | 0.7154 | 0.6229 | 0.6659 | 0.9191 |
+| 2 | 0.2486 | 0.2521 | 0.7210 | 0.6380 | 0.6770 | 0.9214 |
+| 3 | 0.2068 | 0.2534 | 0.7049 | 0.6507 | 0.6767 | 0.9209 |
 
-### XLM-RoBERTa Base Model
+### XLM-RoBERTa Base Performance
 
-| Epoch | Training Loss | Validation Loss | Precision | Recall   | F1       |
-|-------|---------------|----------------|-----------|----------|----------|
-| 1     | 0.323100      | 0.275503       | 0.775799  | 0.694886 | 0.733117 |
-| 2     | 0.272500      | 0.262481       | 0.739266  | 0.739900 | 0.739583 |
-| 3     | 0.248600      | 0.252498       | 0.751478  | 0.741152 | 0.746280 |
-| 4     | 0.236800      | 0.249968       | 0.754882  | 0.741449 | 0.748105 |
-| 5     | 0.223800      | 0.252187       | 0.764390  | 0.740460 | 0.752235 |
-| 6     | 0.218600      | 0.249887       | 0.756352  | 0.741646 | 0.748927 |
-| 7     | 0.209700      | 0.250748       | 0.760696  | 0.739438 | 0.749916 |
+| Epoch | Training Loss | Validation Loss | Precision | Recall | F1 |
+|-------|---------------|-----------------|-----------|---------|-------|
+| 1 | 0.3231 | 0.2755 | 0.7758 | 0.6949 | 0.7331 |
+| 3 | 0.2486 | 0.2525 | 0.7515 | 0.7412 | 0.7463 |
+| 5 | 0.2238 | 0.2522 | 0.7644 | 0.7405 | 0.7522 |
+| 7 | 0.2097 | 0.2507 | 0.7607 | 0.7394 | 0.7499 |
 
-### XLM-RoBERTa Large Model
+### XLM-RoBERTa Large Performance
 
-| Epoch | Training Loss | Validation Loss | Precision | Recall   | F1       |
-|-------|---------------|----------------|-----------|----------|----------|
-| 1     | 0.407500      | 0.253823       | 0.768923  | 0.721350 | 0.744377 |
-| 2     | 0.255600      | 0.249694       | 0.783549  | 0.724464 | 0.752849 |
-| 3     | 0.214400      | 0.248773       | 0.750857  | 0.748900 | 0.749877 |
-| 4     | 0.193400      | 0.257051       | 0.768623  | 0.740371 | 0.754232 |
-| 5     | 0.169800      | 0.275679       | 0.745789  | 0.753740 | 0.749743 |
-| 6     | 0.152600      | 0.288074       | 0.783131  | 0.728423 | 0.754787 |
-| 7     | 0.144300      | 0.303378       | 0.758504  | 0.738069 | 0.748147 |
-| 8     | 0.126800      | 0.311300       | 0.745589  | 0.750863 | 0.748217 |
-| 9     | 0.119400      | 0.331631       | 0.739316  | 0.749475 | 0.744361 |
-| 10    | 0.109400      | 0.344823       | 0.754268  | 0.737189 | 0.745631 |
-| 11    | 0.102900      | 0.354887       | 0.751948  | 0.741285 | 0.746578 |
+| Epoch | Training Loss | Validation Loss | Precision | Recall | F1 |
+|-------|---------------|-----------------|-----------|---------|-------|
+| 1 | 0.4075 | 0.2538 | 0.7689 | 0.7214 | 0.7444 |
+| 3 | 0.2144 | 0.2488 | 0.7509 | 0.7489 | 0.7499 |
+| 6 | 0.1526 | 0.2881 | 0.7831 | 0.7284 | 0.7548 |
+| 9 | 0.1194 | 0.3316 | 0.7393 | 0.7495 | 0.7444 |
 
+### Azeri-Turkish-BERT Performance
 
-### Azeri-Turkish-BERT-NER
+| Epoch | Training Loss | Validation Loss | Precision | Recall | F1 |
+|-------|---------------|-----------------|-----------|---------|-------|
+| 1 | 0.4331 | 0.3067 | 0.7390 | 0.6933 | 0.7154 |
+| 3 | 0.2506 | 0.2751 | 0.7583 | 0.7094 | 0.7330 |
+| 6 | 0.1992 | 0.2861 | 0.7551 | 0.7170 | 0.7355 |
+| 9 | 0.1717 | 0.3138 | 0.7431 | 0.7255 | 0.7342 |
 
-| Epoch | Training Loss | Validation Loss | Precision | Recall | F1    |
-|-------|---------------|-----------------|-----------|--------|-------|
-| 1     | 0.433100      | 0.306711        | 0.739000  | 0.693282 | 0.715412 |
-| 2     | 0.292700      | 0.275796        | 0.781565  | 0.688937 | 0.732334 |
-| 3     | 0.250600      | 0.275115        | 0.758261  | 0.709425 | 0.733031 |
-| 4     | 0.233700      | 0.273087        | 0.756184  | 0.716277 | 0.735689 |
-| 5     | 0.214800      | 0.278477        | 0.756051  | 0.710996 | 0.732832 |
-| 6     | 0.199200      | 0.286102        | 0.755068  | 0.717012 | 0.735548 |
-| 7     | 0.192800      | 0.297157        | 0.742326  | 0.725802 | 0.733971 |
-| 8     | 0.178900      | 0.304510        | 0.743206  | 0.723930 | 0.733442 |
-| 9     | 0.171700      | 0.313845        | 0.743145  | 0.725535 | 0.734234 |
+## Setup Instructions
 
+### Local Development
 
-## Setup and Usage
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/Ismat-Samadov/Named_Entity_Recognition.git
-   cd named-entity-recognition
-   ```
-
-2. **Create and activate a virtual environment**:
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-
-  # On Windows use: .venv\Scripts\activate
-   ```
-
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Run the FastAPI app**:
-   ```bash
-   uvicorn main:app --host 0.0.0.0 --port 8080
-   ```
-
-5. **Deploy on Fly.io**:
-   Use the following steps to deploy the app on Fly.io.
-
-## Fly.io Deployment
-
-To deploy this FastAPI app on Fly.io, follow these steps:
-
-### Step 1: Install Fly CLI
-If you haven't already, install the Fly.io CLI:
+1. **Clone the repository**
 ```bash
+git clone https://github.com/Ismat-Samadov/Named_Entity_Recognition.git
+cd Named_Entity_Recognition
+```
+
+2. **Set up Python environment**
+```bash
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment
+# On Unix/macOS:
+source .venv/bin/activate
+# On Windows:
+.venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+3. **Run the application**
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8080
+```
+
+### Fly.io Deployment
+
+1. **Install Fly CLI**
+```bash
+# On Unix/macOS
 curl -L https://fly.io/install.sh | sh
 ```
 
-### Step 2: Authenticate with Fly.io
-Log in to your Fly.io account:
+2. **Configure deployment**
 ```bash
+# Login to Fly.io
 fly auth login
-```
 
-### Step 3: Initialize Fly.io App
-Run the following command in the root directory of your project:
-```bash
+# Initialize app
 fly launch
-```
-During the launch process:
-- Fly will ask you for a unique app name.
-- It will detect your `Dockerfile` automatically.
-- Accept default region recommendations or specify your preferred region.
 
-### Step 4: Scale Resources
-Increase memory allocation for running the model. For example, to set the memory to 2 GB:
-```bash
+# Configure memory (minimum 2GB recommended)
 fly scale memory 2048
 ```
 
-### Step 5: Deploy the App
-Once configured, deploy the app with:
+3. **Deploy application**
 ```bash
 fly deploy
-```
 
-### Step 6: Monitor and Test
-To check logs and ensure the app is running correctly:
-```bash
+# Monitor deployment
 fly logs
 ```
 
-Access your deployed app at the Fly.io-provided URL (e.g., `https://your-app-name.fly.dev`).
-
 ## Usage
 
-Access the web interface through the Fly.io URL or `http://localhost:8080` (if running locally) to test the NER model and view recognized entities.
+1. Access the application:
+   - Local: http://localhost:8080
+   - Production: https://named-entity-recognition.fly.dev
 
-This application leverages the XLM-RoBERTa Large model fine-tuned on Azerbaijani language data for high-accuracy named entity recognition.
+2. Enter Azerbaijani text in the input field
+3. Click "Process" to view the named entities
+4. Results will display recognized entities highlighted in different colors
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is open source and available under the MIT License.
