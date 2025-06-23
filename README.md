@@ -1,12 +1,112 @@
-# Named Entity Recognition for Azerbaijani Language
+# 🔍 Named Entity Recognition for Azerbaijani Language
 
-A custom Named Entity Recognition (NER) model specifically designed for the Azerbaijani language. This project includes a FastAPI application for model deployment and a user-friendly frontend interface for testing and visualizing NER results.
+A state-of-the-art Named Entity Recognition (NER) system specifically designed for the Azerbaijani language, featuring multiple fine-tuned transformer models and a production-ready FastAPI deployment with an intuitive web interface.
 
-## Demo
+## 📸 Preview
+
+![NER Demo Interface](static/screenshots/prediction.png)
+
+## 🚀 Live Demo
 
 Try the live demo: [Named Entity Recognition Demo](https://named-entity-recognition.fly.dev/)
 
 **Note:** The server runs on a free tier and may take 1-2 minutes to initialize if inactive. Please be patient during startup.
+
+## 🏗️ System Architecture
+
+```mermaid
+graph TD
+    A[User Input] --> B[FastAPI Server]
+    B --> C[XLM-RoBERTa Model]
+    C --> D[Token Classification]
+    D --> E[Entity Aggregation]
+    E --> F[Label Mapping]
+    F --> G[JSON Response]
+    G --> H[Frontend Visualization]
+    
+    subgraph "Model Pipeline"
+        C --> C1[Tokenization]
+        C1 --> C2[BERT Encoding]
+        C2 --> C3[Classification Head]
+        C3 --> D
+    end
+    
+    subgraph "Entity Categories"
+        I[Person] 
+        J[Location]
+        K[Organization]
+        L[Date/Time]
+        M[Government]
+        N[25 Total Categories]
+    end
+    
+    F --> I
+    F --> J
+    F --> K
+    F --> L
+    F --> M
+    F --> N
+```
+
+## 🤖 Model Training Pipeline
+
+```mermaid
+flowchart LR
+    A[Azerbaijani NER Dataset] --> B[Data Preprocessing]
+    B --> C[Tokenization]
+    C --> D[Label Alignment]
+    
+    subgraph "Model Training"
+        E[mBERT] --> F[Fine-tuning]
+        G[XLM-RoBERTa] --> F
+        H[XLM-RoBERTa Large] --> F
+        I[Azeri-Turkish BERT] --> F
+        F --> J[Model Evaluation]
+    end
+    
+    D --> E
+    D --> G
+    D --> H
+    D --> I
+    
+    J --> K[Best Model Selection]
+    K --> L[Hugging Face Hub]
+    L --> M[Production Deployment]
+    
+    subgraph "Performance Metrics"
+        N[Precision: 76.44%]
+        O[Recall: 74.05%]
+        P[F1-Score: 75.22%]
+    end
+    
+    J --> N
+    J --> O
+    J --> P
+```
+
+## 🔄 Data Flow Architecture
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant API as FastAPI
+    participant M as XLM-RoBERTa
+    participant HF as Hugging Face
+    
+    U->>F: Enter Azerbaijani text
+    F->>API: POST /predict/ 
+    API->>M: Process text
+    M->>M: Tokenize input
+    M->>M: Generate predictions
+    M->>API: Return entity predictions
+    API->>API: Apply label mapping
+    API->>API: Group entities by type
+    API->>F: JSON response with entities
+    F->>U: Display highlighted entities
+    
+    Note over M,HF: Model loaded from<br/>IsmatS/xlm-roberta-az-ner
+```
 
 ## Project Structure
 
@@ -33,19 +133,55 @@ Try the live demo: [Named Entity Recognition Demo](https://named-entity-recognit
     └── index.html           # Main UI template
 ```
 
-## Models & Dataset
+## 🧠 Models & Dataset
 
-### Available Models
+### 🏆 Available Models
 
-- [mBERT Azerbaijani NER](https://huggingface.co/IsmatS/mbert-az-ner)
-- [XLM-RoBERTa Azerbaijani NER](https://huggingface.co/IsmatS/xlm-roberta-az-ner)
-- [XLM-RoBERTa Large Azerbaijani NER](https://huggingface.co/IsmatS/xlm_roberta_large_az_ner)
-- [Azerbaijani-Turkish BERT Base NER](https://huggingface.co/IsmatS/azeri-turkish-bert-ner)
+| Model | Parameters | F1-Score | Hugging Face | Status |
+|-------|------------|----------|--------------|---------|
+| [mBERT Azerbaijani NER](https://huggingface.co/IsmatS/mbert-az-ner) | 180M | 67.70% | ✅ | Released |
+| [XLM-RoBERTa Azerbaijani NER](https://huggingface.co/IsmatS/xlm-roberta-az-ner) | 125M | **75.22%** | ✅ | **Production** |
+| [XLM-RoBERTa Large Azerbaijani NER](https://huggingface.co/IsmatS/xlm_roberta_large_az_ner) | 355M | 75.48% | ✅ | Released |
+| [Azerbaijani-Turkish BERT Base NER](https://huggingface.co/IsmatS/azeri-turkish-bert-ner) | 110M | 73.55% | ✅ | Released |
 
-### Dataset
-- [Azerbaijani NER Dataset](https://huggingface.co/datasets/LocalDoc/azerbaijani-ner-dataset)
+### 📊 Supported Entity Types (25 Categories)
 
-**Note:** All models were fine-tuned on an A100 GPU using Google Colab Pro+. The XLM-RoBERTa base model is currently deployed in production.
+```mermaid
+mindmap
+  root((NER Categories))
+    Person
+    Location
+    Organization
+    Government
+    Date
+    Time
+    Money
+    Percentage
+    Facility
+    Product
+    Event
+    Art
+    Law
+    Language
+    Position
+    Nationality
+    Disease
+    Contact
+    Quantity
+    Project
+    Cardinal
+    Ordinal
+    Proverb
+    Miscellaneous
+    Other
+```
+
+### 📈 Dataset Information
+- **Source:** [Azerbaijani NER Dataset](https://huggingface.co/datasets/LocalDoc/azerbaijani-ner-dataset)
+- **Size:** High-quality annotated Azerbaijani text corpus
+- **Language:** Azerbaijani (az)
+- **Annotation:** IOB2 format with 25 entity categories
+- **Training Infrastructure:** A100 GPU on Google Colab Pro+
 
 ## Model Performance
 
