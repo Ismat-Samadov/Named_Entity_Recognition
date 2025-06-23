@@ -183,7 +183,17 @@ mindmap
 - **Annotation:** IOB2 format with 25 entity categories
 - **Training Infrastructure:** A100 GPU on Google Colab Pro+
 
-## Model Performance
+## 📊 Model Performance Comparison
+
+```mermaid
+xychart-beta
+    title "Model Performance Comparison (F1-Score)"
+    x-axis [mBERT, XLM-RoBERTa, XLM-RoBERTa-Large, Azeri-Turkish-BERT]
+    y-axis "F1-Score (%)" 65 --> 80
+    bar [67.70, 75.22, 75.48, 73.55]
+```
+
+## 📈 Detailed Performance Metrics
 
 ### mBERT Performance
 
@@ -220,7 +230,47 @@ mindmap
 | 6 | 0.1992 | 0.2861 | 0.7551 | 0.7170 | 0.7355 |
 | 9 | 0.1717 | 0.3138 | 0.7431 | 0.7255 | 0.7342 |
 
-## Setup Instructions
+## ⚡ Key Features
+
+- 🎯 **State-of-the-art Accuracy**: 75.22% F1-score on Azerbaijani NER
+- 🌐 **25 Entity Categories**: Comprehensive coverage including Person, Location, Organization, Government, and more
+- 🚀 **Production Ready**: Deployed on Fly.io with FastAPI backend
+- 🎨 **Interactive UI**: Real-time entity highlighting with confidence scores
+- 🔄 **Multiple Models**: Four different transformer models to choose from
+- 📊 **Confidence Scoring**: Each prediction includes confidence metrics
+- 🌍 **Multilingual Foundation**: Built on XLM-RoBERTa for cross-lingual understanding
+- 📱 **Responsive Design**: Works seamlessly across desktop and mobile devices
+
+## 🛠️ Technology Stack
+
+```mermaid
+graph LR
+    subgraph "Frontend"
+        A[HTML5] --> B[CSS3]
+        B --> C[JavaScript]
+    end
+    
+    subgraph "Backend"
+        D[FastAPI] --> E[Python 3.8+]
+        E --> F[Uvicorn]
+    end
+    
+    subgraph "ML Stack"
+        G[Transformers] --> H[PyTorch]
+        H --> I[Hugging Face]
+    end
+    
+    subgraph "Deployment"
+        J[Docker] --> K[Fly.io]
+        K --> L[Production]
+    end
+    
+    C --> D
+    F --> G
+    I --> J
+```
+
+## 🚀 Setup Instructions
 
 ### Local Development
 
@@ -278,20 +328,85 @@ fly deploy
 fly logs
 ```
 
-## Usage
+## 💡 Usage
 
-1. Access the application:
-   - Local: http://localhost:8080
-   - Production: https://named-entity-recognition.fly.dev
+### Quick Start
+1. **Access the application:**
+   - 🏠 Local: http://localhost:8080
+   - 🌐 Production: https://named-entity-recognition.fly.dev
 
-2. Enter Azerbaijani text in the input field
-3. Click "Process" to view the named entities
-4. Results will display recognized entities highlighted in different colors
+2. **Enter Azerbaijani text** in the input field
+3. **Click "Submit"** to process and view named entities
+4. **View results** with entities highlighted by category and confidence scores
 
-## Contributing
+### Example Usage
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+```python
+# Example API request
+import requests
 
-## License
+response = requests.post(
+    "https://named-entity-recognition.fly.dev/predict/",
+    data={"text": "2014-cü ildə Azərbaycan Respublikasının prezidenti İlham Əliyev Salyanda olub."}
+)
 
-This project is open source and available under the MIT License.
+print(response.json())
+# Output: {
+#   "entities": {
+#     "Date": ["2014"],
+#     "Government": ["Azərbaycan"],
+#     "Organization": ["Respublikasının"],
+#     "Position": ["prezidenti"],
+#     "Person": ["İlham Əliyev"],
+#     "Location": ["Salyanda"]
+#   }
+# }
+```
+
+## 🎯 Model Capabilities
+
+- **Person Names**: İlham Əliyev, Heydər Əliyev, Nizami Gəncəvi
+- **Locations**: Bakı, Salyanda, Azərbaycan, Gəncə
+- **Organizations**: Respublika, Universitet, Şirkət
+- **Dates & Times**: 2014-cü il, sentyabr ayı, səhər saatları
+- **Government Entities**: prezident, nazir, məclis
+- **And 20+ more categories...**
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how you can help:
+
+1. 🍴 Fork the repository
+2. 🌿 Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. 💍 Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. 📤 Push to the branch (`git push origin feature/AmazingFeature`)
+5. 🔀 Open a Pull Request
+
+### Development Areas
+- 🧠 Model improvements and fine-tuning
+- 🎨 UI/UX enhancements
+- 📊 Performance optimizations
+- 🧪 Additional test cases
+- 📖 Documentation improvements
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 🙏 Acknowledgments
+
+- Hugging Face team for the transformer models and infrastructure
+- Google Colab for providing A100 GPU access
+- Fly.io for hosting the production deployment
+- The Azerbaijani NLP community for dataset contributions
+
+## 📞 Contact
+
+**Ismat Samadov**
+- GitHub: [@Ismat-Samadov](https://github.com/Ismat-Samadov)
+- LinkedIn: [Ismat Samadov](https://linkedin.com/in/ismat-samadov)
+- Email: ismetsemedov@gmail.com
+
+---
+
+⭐ **Star this repository if you found it helpful!**
