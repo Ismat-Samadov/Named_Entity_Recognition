@@ -413,5 +413,3 @@ This project is open source and available under the [MIT License](LICENSE).
 - [Azerbaijani NER Dataset](https://huggingface.co/datasets/LocalDoc/azerbaijani-ner-dataset)
 - [mBERT Azerbaijani NER Model](https://huggingface.co/IsmatS/mbert-az-ner)
 - [XLM-RoBERTa Azerbaijani NER Model](https://huggingface.co/IsmatS/xlm-roberta-az-ner)
-
----
