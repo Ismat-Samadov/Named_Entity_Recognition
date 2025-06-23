@@ -400,13 +400,18 @@ This project is open source and available under the [MIT License](LICENSE).
 - Fly.io for hosting the production deployment
 - The Azerbaijani NLP community for dataset contributions
 
-## 📞 Contact
 
-**Ismat Samadov**
-- GitHub: [@Ismat-Samadov](https://github.com/Ismat-Samadov)
-- LinkedIn: [Ismat Samadov](https://linkedin.com/in/ismat-samadov)
-- Email: ismetsemedov@gmail.com
+## 📊 Repository Stats
+
+![GitHub stars](https://img.shields.io/github/stars/Ismat-Samadov/Named_Entity_Recognition?style=social)
+![GitHub forks](https://img.shields.io/github/forks/Ismat-Samadov/Named_Entity_Recognition?style=social)
+![GitHub issues](https://img.shields.io/github/issues/Ismat-Samadov/Named_Entity_Recognition)
+![GitHub license](https://img.shields.io/github/license/Ismat-Samadov/Named_Entity_Recognition)
+
+## 🔗 Related Projects
+
+- [Azerbaijani NER Dataset](https://huggingface.co/datasets/LocalDoc/azerbaijani-ner-dataset)
+- [mBERT Azerbaijani NER Model](https://huggingface.co/IsmatS/mbert-az-ner)
+- [XLM-RoBERTa Azerbaijani NER Model](https://huggingface.co/IsmatS/xlm-roberta-az-ner)
 
 ---
-
-⭐ **Star this repository if you found it helpful!**
